@@ -74,4 +74,4 @@ rdd5.reduce(lambda x , y : min(x,y))
 rdd5.reduce(lambda x , y : max(x,y))
 
 # Great Completed basics of spark tutorial
-# lets move on group operations which is called a key : value pair operations in spark
+# lets move on group by operations which is called as key : value pair operations in spark
