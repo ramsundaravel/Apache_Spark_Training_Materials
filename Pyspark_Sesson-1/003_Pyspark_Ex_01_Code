@@ -24,7 +24,7 @@ rdd1.collect() # sends all row to console. so careful in large data sets
 # more list of transformation actions refer - 
 # https://spark.apache.org/docs/1.6.2/programming-guide.html#transformations
 
-# read only a head
+# read only header
 header = rdd1.first()
 
 # explain map, filter, reducer
@@ -42,8 +42,8 @@ for line in rdd3.take(5):
 	print('\n')
 
 
-# select only date. 
-# position of date in each record - 2
+# select or read  only date column. 
+# position of date in each record : 2
 # corresponding list index (n-1) : 1
 rdd4 = rdd3.map(lambda x : x[1])
 
