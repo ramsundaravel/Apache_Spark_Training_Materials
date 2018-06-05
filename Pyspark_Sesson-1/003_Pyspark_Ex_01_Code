@@ -1,0 +1,77 @@
+# logging into pyspark interactive shell
+
+#create a interactive pyspark shell
+pyspark --master yarn \
+ 	--num-executors 4 \
+  	--executor-memory 2G \
+    --executor-cores 2 \
+    --conf spark.ui.port=34568
+
+# complete teaching of RDD, lazy evaluation, direct acyclic graph, transformation and actions 
+# before moving further
+
+
+# create initial RDD from Raw
+rdd1 = sc.textFile("/public/crime/csv/crime_data.csv")
+
+#explore the data insights
+rdd1.first() # provides first row only
+rdd1.take(5) # provides n rows
+rdd1.collect() # sends all row to console. so careful in large data sets
+
+# explain map filter reduce concepts
+
+# more list of transformation actions refer - 
+# https://spark.apache.org/docs/1.6.2/programming-guide.html#transformations
+
+# read only a head
+header = rdd1.first()
+
+# explain map, filter, reducer
+
+# remove header from rdd1 for further processing
+rdd2 = rdd1.filter(lambda x : x<>header)
+
+
+# lets split the whole recordset into list of individual elements
+rdd3 = rdd2.map(lambda x : x.split(","))
+
+# to see contents of rdd3
+for line in rdd3.take(5):
+	print(line)
+	print('\n')
+
+
+# select only date. 
+# position of date in each record - 2
+# corresponding list index (n-1) : 1
+rdd4 = rdd3.map(lambda x : x[1])
+
+# to see contents of rdd4
+for line in rdd4.take(5):
+	print(line)
+
+
+# sample date - u'07/24/2007 10:11:00 PM'
+# helper function to extract only year from date
+def yearfind(inp):
+	dat = inp.split(" ")[0]
+	dat1 = int(dat.split("/")[2])
+	return dat1
+
+# test helper function
+yearfind('07/24/2007 10:11:00 PM')
+
+# extracting only year part from date
+rdd5 = rdd4.map(lambda x : yearfind(x) )
+
+# reduce operation to find minimum operation
+# calling an action
+rdd5.reduce(lambda x , y : min(x,y))
+
+
+# reduce operation to find maximum operation
+rdd5.reduce(lambda x , y : max(x,y))
+
+# Great Completed basics of spark tutorial
+# lets move on group operations which is called a key : value pair operations in spark
