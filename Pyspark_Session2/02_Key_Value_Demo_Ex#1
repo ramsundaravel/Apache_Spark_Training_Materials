@@ -1,0 +1,73 @@
+# Problem statement with single (key,value pair) 
+# Data is available in HDFS file system under /public/crime/csv
+# Structure of data (ID,Case Number,Date,IUCR,Primary Type,
+# Description,Location Description,Arrest,Domestic,Beat,District,Ward,Community Area,FBI Code,X #Coordinate,Y Coordinate,Year,Updated On,Latitude,Longitude,Location)
+# File format - text file
+# Delimiter - “,” (use regex while splitting split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1), as there #  are some fields with comma and enclosed using double quotes.
+
+# Get top 3 primary crime types based on number of incidents in RESIDENCE area using “Location Description”
+# Store the result in HDFS path /user/<YOUR_USER_ID>/solutions/solution03/ 
+# Output File Format: text format
+# Output Delimiter: N/A
+# Output Compression: No
+
+
+pyspark --master yarn \
+	--num-executors 4 \
+	--executor-memory 1G \
+	--conf spark.ui.port=12365
+
+#read the data
+crimedata = sc.textFile("/public/crime/csv")
+
+#removing header
+header = crimedata.first()
+crime_withoutheader = crimedata.filter(lambda x : x<>header)
+
+# lets get header positions
+for i, j in enumerate(header.split(",")):
+	print(i,";", j)
+
+# transformation 1 - filter only residence records
+# we can combine multiple transformation operation using "." operation
+# "\" is used to seperate or providing code break
+residencecrime1 = crime_withoutheader.map(lambda x : x.split(","))\
+									.filter(lambda x : x[7].upper()=='RESIDENCE')
+
+# transformation 2 - select only primary crime type column
+residencecrime2 = residencecrime1.map(lambda x : [x[5],x[7]])
+
+# transformation 3 - select only primary crime and do summary operation
+residencecrime_summarized  = residencecrime2.map(lambda x :(x[0],1))\
+										.reduceByKey(lambda x,y : x + y)
+									
+# check first 5 records 
+residencecrime_groupby.take(5)
+
+# sort the data using key. so move count as key and do sort
+# sorting can be effectively done by dataframe, which will covered in sequent class
+residencecrime_sorted = residencecrime_summarized.map(lambda x : (x[1],x[0]))\
+												.sortByKey(ascending=False)
+
+# reorder columns
+residence_top3crimes = residencecrime_sorted.map(lambda x : x[1]+","+str(x[0]))
+
+# check the result
+for i in residence_top3crimes.take(10):
+	print(i)
+
+# writing into text file in hdfs
+residence_top3crimes.saveAsTextFile('/user/spvasanthkumar/ram_training/ny_crime_analysis_ex1')
+# when storing file in hadoop, folder will be created with given file name and all data are divded or 
+# paritioned or splitup into multiple part files because of distributed processing
+
+
+# currently it contains 12 paritions
+# repartition to 1 but not recommendated
+residence_top3crimes.coalesce(1).saveAsTextFile('/user/spvasanthkumar/ram_training/ny_crime_analysis_ex1_1')
+
+
+#testing
+test = sc.textFile('/user/spvasanthkumar/ram_training/ny_crime_analysis_ex1')
+for i in test.take(5) :
+	print(i)
