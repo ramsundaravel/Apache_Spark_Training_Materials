@@ -55,7 +55,7 @@ nysesorted = rawdata.map(lambda x : x.split(","))\
 				.map(lambda x : str(x[1][0]) +","+ str(x[0][0]) +","+ str(x[1][1]) +","+ str(x[1][2])\
 					+","+ str(x[1][3]) +","+ str(x[1][4]) +","+ str(-x[0][1]))
 
-
+# writing results in hdfs
 resultdata.saveAsTextFile("/user/spvasanthkumar/ram_training/nyse_sorted_by_volume.txt")
 
 
