@@ -1,0 +1,14 @@
+Data is available in HDFS /public/randomtextwriter
+Get word count of word "scotching" 
+
+pyspark --master yarn --num-executors 4 --executor-memory 3G --executor-cores 2
+
+raw = sc.textFile("/public/randomtextwriter")
+
+cnt = sc.accumulator(0)
+
+raw.flatMap(lambda x : x.split(" "))\
+	.filter(lambda x : x=='scotching')\
+	.foreach(lambda x : cnt.add(1))
+
+cnt.value
