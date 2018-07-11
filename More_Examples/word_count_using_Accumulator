@@ -1,0 +1,33 @@
+Details - Duration 20 minutes
+Data is available in HDFS /public/randomtextwriter
+Get word count for the input data using space as delimiter (for each word, we need to get how many types it is repeated in the entire input data set)
+Number of executors should be 10
+Executor memory should be 3 GB
+Executor cores should be 20 in total (2 per executor)
+Number of output files should be 8
+Avro dependency details: groupId -> com.databricks, artifactId -> spark-avro_2.10, version -> 2.0.1
+Target Directory: /user/<YOUR_USER_ID>/solutions/solution05/wordcount
+Target File Format: Avro
+Target fields: word, count
+Compression: N/A or default
+
+pyspark --master yarn --num-executors 10 --executor-memory 3G --executor-cores 2
+
+raw = sc.textFile("/public/randomtextwriter")
+
+cnt = sc.accumulator(0)
+
+raw.flatMap(lambda x : x.split(" "))\
+	.filter(lambda x : x=='scotching')\
+	.foreach(lambda x : cnt.add(1))
+
+cnt
+
+Accumulator<id=3, value=2927780>
+Row(word=u'scotching', count=2927780)
+
+
+
+
+
+

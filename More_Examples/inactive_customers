@@ -1,0 +1,56 @@
+Details - Duration 15 to 20 minutes
+Data is available in local file system /data/retail_db
+Source directories: /data/retail_db/orders and /data/retail_db/customers
+Source delimiter: comma (“,”)
+Source Columns - orders - order_id, order_date, order_customer_id, order_status
+Source Columns - customers - customer_id, customer_fname, customer_lname and many more
+Get the customers who have not placed any orders, sorted by customer_lname and then customer_fname
+Target Columns: customer_lname, customer_fname
+Number of files - 1
+Target Directory: /user/<YOUR_USER_ID>/solutions/solutions02/inactive_customers
+Target File Format: TEXT
+Target Delimiter: comma (“, ”)
+Compression: N/A
+check this
+result = sqlContext.sql("select fname, lname from cust c where c.cust_id not in (select distinct cust_id from orders)")
+
+----------option1------------------------------------------------------------------------
+pyspark --master yarn-client
+
+from pyspark.sql import Row
+sqlContext.setConf("spark.sql.shuffle.partitions","10")
+
+raworders = sc.textFile("/public/retail_db/orders")
+rawcust = sc.textFile("/public/retail_db/customers")
+
+ftorders = raworders.map(lambda x : x.split(","))\
+					.map(lambda x : Row(x[0],x[1],x[2]))\
+					.toDF(["order_id","order_date","cust_id_orders"])
+
+ftcust = rawcust.map(lambda x : x.split(","))\
+				.map(lambda x : Row(x[0],x[1],x[2]))\
+				.toDF(["cust_id","fname","lname"])
+
+
+inter = ftcust.join(ftorders,[ftcust.cust_id==ftorders.cust_id_orders],"leftouter")
+
+result = inter.filter(inter.cust_id_orders.isNull())\
+			  .select(["lname","fname"])\
+			  .orderBy(["lname","fname"])\
+			  .rdd.map(lambda x : x["lname"]+","+x["fname"])
+
+result.coalesce(1).saveAsTextFile("/user/ramkarthik/ram/solution/retaildb/inactive_customers2")
+
+----------option2-----------------------------------------------------------------------------
+ftorders.registerTempTable("orders")
+ftcust.registerTempTable("cust")
+
+result1 = sqlContext.sql("select c.lname as customer_lname, c.fname as customer_fname from cust c \
+left outer join orders o \
+on c.cust_id = o.cust_id \
+where o.cust_id is null \
+order by c.lname, c.fname")
+
+writerdd = result.rdd.map(lambda x : x["customer_lname"]+","+x["customer_fname"])
+writerdd.coalesce(1).saveAsTextFile("/user/ramkarthik/ram/solution/retaildb/inactive_customers")
+-------------------------------------------------------------------------------------------

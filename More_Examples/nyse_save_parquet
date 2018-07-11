@@ -1,0 +1,26 @@
+Details - Duration 10 minutes
+Data is available in local file system under /data/nyse (ls -ltr /data/nyse)
+Fields (
+stockticker:string, 
+transactiondate:string, 
+openprice:float, 
+highprice:float, 
+lowprice:float, 
+closeprice:float, 
+volume:bigint)
+Convert file format to parquet
+Save it /user/<YOUR_USER_ID>/nyse_parquet
+Validation
+Solution
+In Scala using Data Frames116
+
+# read
+raw = sc.textFile("/user/ramkarthik/ram/data/exercise2/nyse")
+
+# formt
+ft = raw.map(lambda x : x.split(","))\
+		.map(lambda x : Row(str(x[0]),str(x[1]),float(x[2]),float(x[3]),float(x[4]),float(x[5]),long(x[6])))\
+		.toDF(["stockticker","transactiondate","openprice","highprice","lowprice","closeprice","volume"])
+
+# write to json
+ft.coalesce(1).write.parquet("/user/ramkarthik/ram/solution/nyse/nyse_parquet1.parquet")

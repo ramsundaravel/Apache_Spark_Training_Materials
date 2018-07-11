@@ -1,0 +1,32 @@
+problem statement
+	Input Path on the lab: HDFS Location - /public/nyse
+	Problem Statement: Using Spark Core APIs - sort the data in ascending order by date and descending order by volume
+	Structure of the data
+	Stock Ticker 0
+	Transaction Date 1
+	Open Price 2
+	High Price 3
+	Low Price 4
+	Close Price 5
+	Volume 6
+	Output Path on the lab: Local Location - /home/YOUR_USER_ID/nyse_sorted_by_volume
+	Code should be saved under /home/YOUR_USER_ID/nyse_sorted_by_volume.txt
+
+pyspark --master yarn
+
+from pyspark.sql import Row
+
+# read
+raw = sc.textFile("/public/nyse")
+
+# format and sort
+ft = raw.map(lambda x : x.split(","))\
+		.map(lambda x : Row(x[0],int(x[1]),x[2],x[3],x[4],x[5],int(x[6])))\
+		.toDF(["tk","dt","op","hg","lw","cl","vl"])\
+		.orderBy(["dt","vl"],ascending=[1,0])\
+		.rdd.map(lambda x : str(x[0])+","+str(x[1])+","+str(x[2])+","+str(x[3])+","+str(x[4])+","+str(x[5])+","+str(x[6]))
+
+sqlContext.setConf("spark.sql.shuffle.partitions","10")
+
+# write
+ft.coalesce(1).saveAsTextFile("/user/ramkarthik/ram/solution/nyse/nyse_sorted_by_volumne8091.txt")

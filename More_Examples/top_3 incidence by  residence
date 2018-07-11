@@ -1,0 +1,70 @@
+Details - Duration 15 to 20 minutes
+Data is available in HDFS file system under /public/crime/csv
+Structure of data (ID,0
+Case Number,1
+Date,2
+Block,3
+IUCR,4
+Primary Type,5
+Description,6
+Location Description,7
+Arrest,Domestic,Beat,District,Ward,Community Area,FBI Code,X Coordinate,Y Coordinate,Year,Updated On,Latitude,Longitude,Location)
+File format - text file
+Delimiter - “,” (use regex while splitting split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1), as there are some fields with comma and enclosed using double quotes.
+Get top 3 crime types based on number of incidents in RESIDENCE area using “Location Description”
+Store the result in HDFS path /user/<YOUR_USER_ID>/solutions/solution03/RESIDENCE_AREA_CRIMINAL_TYPE_DATA
+Output Fields: Crime Type, Number of Incidents
+Output File Format: JSON
+Output Delimiter: N/A
+Output Compression: No
+
+
+pyspark --master yarn --num-executors 4 --executor-memory 1G --executor-cores 2
+from pyspark.sql import Row
+
+# read 
+raw1 = sc.textFile("/public/crime/csv")
+header  = raw.first()
+rawnohead = raw.filter(lambda x : x<>header)
+
+# format
+ft = rawnohead.map(lambda x : x.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1))\
+			  .map(lambda x : x[0].split(","))\
+			  .filter(lambda x : x[7].upper()=='RESIDENCE')\
+			  .map(lambda x : (x[5],1))\
+			  .reduceByKey(lambda x,y : x+y)\
+			  .map(lambda x : Row(x[0],x[1]))\
+			  .toDF(["Crime Type","Number of incidents"])\
+			  .orderBy(["Number of incidents"], ascending = [0])\
+			  .limit(3)
+
+# write
+ft.coalesce(1).write.mode("overwrite").json("/user/ramkarthik/ram/solution/crime/RESIDENCE_AREA_CRIMINAL_TYPE_DATA123.json")
+
+# testing
+sqlContext.read.json("/user/ramkarthik/ram/solution/crime/RESIDENCE_AREA_CRIMINAL_TYPE_DATA123.json").show()
+
+
+
+pyspark --master yarn --num-executors 10 --executor-memory 1G --executor-cores 2 --packages com.databricks:spark-csv_2.10:1.5.0
+
+raw = sqlContext.read.format("com.databricks.spark.csv").options(header="true",inferschema="true").load("/public/crime/csv")
+
+from pyspark.sql.functions import * 
+
+ft = raw.select([col("Location Description").alias("description"),col("Primary Type").alias("crime_type")])
+ft1 = ft.filter(upper(ft.description)=="RESIDENCE")
+ft1.registerTempTable("residence_crime")
+
+result = sqlContext.sql("select crime_type, count(*) as cnt from residence_crime group by crime_type order by cnt desc")
+result_write = result.select([col("crime_type").alias("crime type"),col("cnt").alias("Number of incidents")])
+
+
+result_write.write.mode("overwrite").format("com.databricks.spark.csv").options(header='true',codec=None).save("/user/ramkarthik/ram/solution/crime/RESIDENCE_AREA_CRIMINAL_TYPE.csv")
+
+
+hadoop fs -tail /user/ramkarthik/ram/solution/crime/RESIDENCE_AREA_CRIMINAL_TYPE.csv/part-00000
+
+
+ 6397406
+ 6397407

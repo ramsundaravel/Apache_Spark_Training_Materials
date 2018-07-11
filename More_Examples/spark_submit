@@ -1,1 +1,15 @@
-spark-submit --master yarn --class org.apache.spark.examples.SparkPi --num-executors 10 --executor-memory 1G /usr/hdp/current/spark-client/lib/spark-examples-1.6.2.2.5.0.0-1245-hadoop2.7.3.2.5.0.0-1245.jar
+
+spark-submit --class org.apache.spark.examples.SparkPi  --master local[3] --num-executors 3 --executor-memory 1G spark-examples_2.11-2.2.1.jar
+
+Pi is roughly 3.1449357246786236
+
+
+
+/Users/varsharamkumar/spark-2.2.1-bin-hadoop2.7/examples/jars
+
+
+spark-submit --class org.apache.spark.examples.SparkPi --master local[3] --num-executors 3 --executor-memory 1G /Users/varsharamkumar/spark-2.2.1-bin-hadoop2.7/examples/jars/spark-examples_2.11-2.2.1.jar 
+
+
+
+spark-submit --master yarn --class org.apache.spark.examples.SparkPi --num-executors 10 --executor-memory 1G  /usr/hdp/current/spark-client/lib/spark-examples-1.6.2.2.5.0.0-1245-hadoop2.7.3.2.5.0.0-1245.jar

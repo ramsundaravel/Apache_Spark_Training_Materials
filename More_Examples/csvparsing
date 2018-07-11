@@ -1,0 +1,35 @@
+/user/ramkarthik/karthik/data/flights/1987.csv
+Year, Month, DayofMonth, DayOfWeek, DepTime, CRSDepTime, ArrTime, CRSArrTime, UniqueCarrier, FlightNum, TailNum, ActualElapsedTime, CRSElapsedTime, AirTime, ArrDelay, DepDelay, Origin, Dest, Distance, TaxiIn, TaxiOut, Cancelled, CancellationCode, Diverted, CarrierDelay, WeatherDelay, NASDelay,SecurityDelay, LateAircraftDelay
+
+pyspark --master yarn
+
+raw = sc.textFile("/user/ramkarthik/karthik/data/flights/1987.csv")
+
+colraw = "Year, Month, Day of Month, Day Of Week, DepTime,
+			CRSDepTime, ArrTime, CRSArrTime, UniqueCarrier, FlightNum,
+			TailNum, ActualElapsedTime, CRSElapsedTime, AirTime, ArrDelay,
+			DepDelay, Origin, Dest, Distance, TaxiIn,
+			TaxiOut, Cancelled, CancellationCode, Diverted, CarrierDelay,
+			WeatherDelay, NASDelay,SecurityDelay, LateAircraftDelay"
+
+colname = [x.strip() for x in colraw.split(",")]
+colname1 = [x.replace(" ","") for x in colname]
+
+def f(x,colname):
+	d = {}
+	for i in range(len(x)):
+		d[colname[i]] = x[i]
+	return d
+
+
+ft = raw.map(lambda x : x.split(","))\
+		.map(lambda x : Row(**f(x,colname1)))\
+		.toDF()\
+		.select(colname1)
+
+x = range(len(x))
+c2 = [str(i) for i in c1]
+
+
+for i in range(len(x)):
+	print(i)
