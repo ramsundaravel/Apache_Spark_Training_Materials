@@ -1,4 +1,0 @@
-raw = sc.textFile("/user/ramkarthik/karthik/data/flights/1987.csv")
-
-ft = raw.map(lambda x : x.split(","))\
-		.map(lamba x : Row())
