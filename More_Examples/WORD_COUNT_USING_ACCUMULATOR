@@ -1,0 +1,8 @@
+pyspark --master yarn
+raw = sc.textFile("/public/randomtextwriter")
+cnt = sc.accumulator(0)
+raw.flatMap(lambda x : x.split(" "))\
+	.filter(lambda x : x=="scotching")\
+	.foreach(lambda x : cnt.add(1))
+
+print("Numer of times scotching word present :", str(cnt.value))

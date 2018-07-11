@@ -1,0 +1,34 @@
+pyspark --master yarn
+
+data = open("/data/retail_db/orders/part-00000").read().splitlines()
+ordersRDD = sc.parallelize(data)
+
+custdata = open("/data/retail_db/customers/part-00000").read().splitlines()
+custRDD = sc.parallelize(custdata)
+
+from pyspark.sql import Row
+
+orders = ordersRDD.map(lambda x : x.split(","))\
+					.map(lambda x : Row(x[2]))\
+					.toDF(["orders_cust_id"])
+
+
+cust = custRDD.map(lambda x : x.split(","))\
+				.map(lambda x : Row(x[0],x[1],x[2]))\
+				.toDF(["cust_id","fname","lname"])
+
+joinresult = cust.join(orders, [cust.cust_id == orders.orders_cust_id],"leftouter")
+joinresult.registerTempTable("joinres")
+
+sqlContext.setConf("spark.sql.shuffle.partitions","2")
+
+result = sqlContext.sql("select distinct fname as first_name, lname as last_name from joinres \
+where orders_cust_id is null \
+order by fname asc, lname asc")
+
+
+resultwrite = result.rdd.map(lambda x : ", ".join([str(i) for i in x]))
+resultwrite.repartition(1).saveAsTextFile("/user/ramkarthik/ram/solution/inactive_customer1.csv")
+
+for i in resultwrite.take(10) : print(i)
+

@@ -1,0 +1,3 @@
+ramkarthik_ram_retaildb_txt.db
+
+raw = sqlContext.sql("select * from ramkarthik_ram_retaildb_txt.db.order_items limit 10")
