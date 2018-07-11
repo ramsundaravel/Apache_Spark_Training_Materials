@@ -1,0 +1,29 @@
+1. spark-submit.  will provide class name (1)
+class org.apache.spark.examples.SparkPi
+/usr/hdp/current/spark-client/lib/spark-examples-1.6.2.2.5.0.0-1245-hadoop2.7.3.2.5.0.0-1245.jar
+
+2. accumulator using wordcount. (2) 
+/public/randomtextwriter
+scotching
+/user/ramkarthik/ram/solution/
+"Error"
+
+3. json - read and average balance. output text file (save as textfile) (3)
+/public/retail_db_json/order_items
+per productid, find the average subtotal amount
+
+4. hive table input. group by order by and result as textfile (5)
+
+5. hive table - sort by column. order by works only in numerical data (4).. check datatype
+ramkarthik_ram_retaildb_txt.db
+table orders_items
+per productid, find the average subtotal amount
+
+
+6. flight example. read csv, df, query and save as textfile. will they provide header (6)
+ /user/ramkarthik/karthik/data/flights/1987.csv
+Year, Month, DayofMonth, DayOfWeek, DepTime, CRSDepTime, ArrTime, CRSArrTime, UniqueCarrier, FlightNum, TailNum, ActualElapsedTime, CRSElapsedTime, AirTime, ArrDelay, DepDelay, Origin, Dest, Distance, TaxiIn, TaxiOut, Cancelled, CancellationCode, Diverted, CarrierDelay, WeatherDelay, NASDelay,SecurityDelay, LateAircraftDelay
+
+
+7. 2 files present. join (7)
+ 
