@@ -1,0 +1,70 @@
+Details - Duration 15 to 20 minutes
+Data is available in local file system /data/retail_db
+Source directories: /data/retail_db/orders and /data/retail_db/customers
+Source delimiter: comma (“,”)
+Source Columns - orders - order_id, order_date, order_customer_id, order_status
+Source Columns - customers - customer_id, customer_fname, customer_lname and many more
+Get the customers who have not placed any orders, sorted by customer_lname and then customer_fname
+Target Columns: customer_lname, customer_fname
+Number of files - 1
+Target Directory: /user/<YOUR_USER_ID>/solutions/solutions02/inactive_customers
+Target File Format: TEXT
+Target Delimiter: comma (“, ”)
+Compression: N/A
+check this
+result = sqlContext.sql("select fname, lname from cust c where c.cust_id not in (select distinct cust_id from orders)")
+
+----------option1------------------------------------------------------------------------
+pyspark --master yarn-client
+
+from pyspark.sql import Row
+sqlContext.setConf("spark.sql.shuffle.partitions","10")
+
+raworders = sc.textFile("/public/retail_db/orders")
+rawcust = sc.textFile("/public/retail_db/customers")
+
+ftorders = raworders.map(lambda x : x.split(","))\
+					.map(lambda x : Row(x[0],x[1],x[2]))\
+					.toDF(["order_id","order_date","cust_id_orders"])
+
+ftcust = rawcust.map(lambda x : x.split(","))\
+					.map(lambda x : Row(x[0],x[1],x[2]))\
+					.toDF(["cust_id","fname","lname"])
+
+
+
+ftorders.registerTempTable("orders")
+ftcust.registerTempTable("cust")
+
+result1 = sqlContext.sql("select c.lname as customer_lname, \
+c.fname as customer_fname from cust c \
+left outer join orders o \
+on c.cust_id = o.cust_id_orders \
+where o.cust_id_orders is null \
+order by c.lname, c.fname")
+
+writerdd =result1.rdd.map(lambda x : x["customer_lname"]+","+x["customer_fname"])
+writerdd.coalesce(5).saveAsTextFile("/user/spvasanthkumar/ram_training/inactive_customers_ex3")
+
+
+---------------------------------------------------------------------------------
+
+#testing
+test = sc.textFile('/user/spvasanthkumar/ram_training/inactive_customers_ex3')
+for i in test.take(5) :
+	print(i)
+
+----------------------------------------------------------------------
+#writing data as json
+result1.coalesce(1).write.format("json").mode("overwrite").save("/user/spvasanthkumar/ram_training/inactive_customers_ex2_json.json")
+
+
+# read json read
+jsonread = sqlContext.read.json("/user/spvasanthkumar/ram_training/inactive_customers_ex1_json.json")
+---------------------------------------------------------------------
+
+# writing into hive table 
+sqlContext.sql("use spark_training") 
+result1.saveAsTable("spark_training.inactive_customers_session1")
+
+hiveread = sqlContext.sql("select * from spark_training.inactive_customers_session1")
